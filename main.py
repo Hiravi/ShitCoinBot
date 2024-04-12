@@ -10,7 +10,8 @@ logging.config.dictConfig(LOGGING_CONFIG)
 
 BOT_TOKEN = config.BOT_TOKEN
 
-users_db = UsersDb(mongo_uri=config.MONGO_URI, mongo_database=config.MONGO_DATABASE, username=config)
+users_db = UsersDb(mongo_uri=config.MONGO_URI, mongo_database=config.MONGO_DATABASE, username=config.MONGO_USERNAME,
+                   password=config.MONGO_PASSWORD)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
