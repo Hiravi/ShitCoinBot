@@ -4,8 +4,8 @@ import logging
 
 
 class UsersDb:
-    def __init__(self, mongo_uri, mongo_database):
-        self.client = MongoClient(mongo_uri)
+    def __init__(self, mongo_uri, mongo_database, username, password):
+        self.client = MongoClient(mongo_uri, username=username, password=password)
         self.db = self.client[mongo_database]
         self.users_collection = self.db["users"]
 

@@ -10,7 +10,7 @@ logging.config.dictConfig(LOGGING_CONFIG)
 
 BOT_TOKEN = config.BOT_TOKEN
 
-users_db = UsersDb(mongo_uri=config.MONGO_URI, mongo_database=config.MONGO_DATABASE)
+users_db = UsersDb(mongo_uri=config.MONGO_URI, mongo_database=config.MONGO_DATABASE, username=config)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -105,7 +105,8 @@ def start(message):
 def handle_initiation(call):
     message = call.message
     user_id = message.chat.id
-    member_status = bot.get_chat_member(config.CHANNEL_ID, user_id).status
+    chanel_id = config.CHANNEL_ID
+    member_status = bot.get_chat_member(chanel_id, user_id).status
     is_initiated = member_status == 'member' or member_status == 'administrator'
 
     if is_initiated:
