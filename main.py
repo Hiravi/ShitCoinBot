@@ -11,7 +11,7 @@ logging.config.dictConfig(LOGGING_CONFIG)
 BOT_TOKEN = config.BOT_TOKEN
 
 users_db = UsersDb(mongo_uri=config.MONGO_URI, mongo_database=config.MONGO_DATABASE, username=config.MONGO_USERNAME,
-                   password=config.MONGO_PASSWORD)
+                   password=config.MONGO_PASSWORD, authSource=config.MONGO_AUTH_SOURCE)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -268,21 +268,21 @@ def handle_squad(message):
 def handle_quests(message):
     user_id = message.chat.id
 
-    # Create a keyboard with language options
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    active_quests = get_active_quests(users_db, user_id)
-
-    if active_quests:
-
-        for quest in active_quests:
-            quest_code = quest
-            keyboard.add(telebot.types.InlineKeyboardButton(text=get_button_name(users_db, user_id, quest_code),
-                                                            callback_data=quest_code))
-
-        quest_list_message = get_message_text(db=users_db, user_id=user_id, message_key='quests_list_message')
-
-    else:
-        quest_list_message = get_message_text(db=users_db, user_id=user_id, message_key='quests_list_empty_message')
+    # # Create a keyboard with language options
+    # keyboard = telebot.types.InlineKeyboardMarkup()
+    # active_quests = get_active_quests(users_db, user_id)
+    #
+    # if active_quests:
+    #
+    #     for quest in active_quests:
+    #         quest_code = quest
+    #         keyboard.add(telebot.types.InlineKeyboardButton(text=get_button_name(users_db, user_id, quest_code),
+    #                                                         callback_data=quest_code))
+    #
+    #     quest_list_message = get_message_text(db=users_db, user_id=user_id, message_key='quests_list_message')
+    #
+    # else:
+    quest_list_message = get_message_text(db=users_db, user_id=user_id, message_key='quests_list_empty_message')
 
     image_path = 'webp_images/quests.webp'
 
@@ -290,60 +290,61 @@ def handle_quests(message):
         # Open the image file
         with open(image_path, 'rb') as image_file:
             # Send both text and image in a single message
-            bot.send_photo(message.chat.id, photo=image_file, caption=quest_list_message,
-                           reply_markup=keyboard)
+            bot.send_photo(message.chat.id, photo=image_file, caption=quest_list_message)
+            # bot.send_photo(message.chat.id, photo=image_file, caption=quest_list_message,
+            #                reply_markup=keyboard)
     except FileNotFoundError:
         # Handle the case where the image file is not found
         bot.reply_to(message, "Error: Image not found.")
 
 
-@bot.callback_query_handler(func=lambda call: call.data in get_active_quests(users_db, call.message.chat.id))
-def quest_buttons_callback(call):
-    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-
-    user_id = call.message.chat.id
-
-    if call.data == 'daily_quest_button':
-        link_button_key = 'link_daily_quest_button'
-        link_callback_data = 'link_to_twitter'
-        check_callback_data = 'check_daily_quest'
-        quest_code = 'daily_quest_message'
-        url = get_latest_tweet_url(users_db)
-    elif call.data == 'start_another_bot_button':
-        link_button_key = 'link_bot_quest_button'
-        link_callback_data = 'link_to_bot'
-        check_callback_data = 'check_another_bot_quest'
-        quest_code = 'start_another_bot_quest_message'
-        url = get_latest_tweet_url(users_db)
-    else:
-        link_button_key = 'link_subscribe_quest_button'
-        link_callback_data = 'link_to_channel'
-        check_callback_data = 'check_subscribe_tg_channel_quest'
-        quest_code = 'subscribe_tg_channel_quest_message'
-        url = get_latest_tweet_url(users_db)
-
-    link_button = telebot.types.InlineKeyboardButton(get_button_name(users_db, user_id, link_button_key),
-                                                     callback_data=link_callback_data, url=url)
-    check_button = telebot.types.InlineKeyboardButton(get_button_name(users_db, user_id, "check_quest_button"),
-                                                      callback_data=check_callback_data)
-
-    keyboard = telebot.types.InlineKeyboardMarkup().add(link_button, check_button)
-
-    message = get_message_text(users_db, user_id, quest_code)
-
-    image_path = 'webp_images/language.webp'
-
-    try:
-        # Open the image file
-        with open(image_path, 'rb') as image_file:
-            # Send both text and image in a single message
-            bot.send_photo(call.message.chat.id, photo=image_file, caption=message,
-                           reply_markup=keyboard)
-    except FileNotFoundError:
-        # Handle the case where the image file is not found
-        bot.reply_to(call.message, "Error: Image not found.")
-
-    twitter_link_clicked(users_db, user_id)
+# @bot.callback_query_handler(func=lambda call: call.data in get_active_quests(users_db, call.message.chat.id))
+# def quest_buttons_callback(call):
+#     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+#
+#     user_id = call.message.chat.id
+#
+#     if call.data == 'daily_quest_button':
+#         link_button_key = 'link_daily_quest_button'
+#         link_callback_data = 'link_to_twitter'
+#         check_callback_data = 'check_daily_quest'
+#         quest_code = 'daily_quest_message'
+#         url = get_latest_tweet_url(users_db)
+#     elif call.data == 'start_another_bot_button':
+#         link_button_key = 'link_bot_quest_button'
+#         link_callback_data = 'link_to_bot'
+#         check_callback_data = 'check_another_bot_quest'
+#         quest_code = 'start_another_bot_quest_message'
+#         url = get_latest_tweet_url(users_db)
+#     else:
+#         link_button_key = 'link_subscribe_quest_button'
+#         link_callback_data = 'link_to_channel'
+#         check_callback_data = 'check_subscribe_tg_channel_quest'
+#         quest_code = 'subscribe_tg_channel_quest_message'
+#         url = get_latest_tweet_url(users_db)
+#
+#     link_button = telebot.types.InlineKeyboardButton(get_button_name(users_db, user_id, link_button_key),
+#                                                      callback_data=link_callback_data, url=url)
+#     check_button = telebot.types.InlineKeyboardButton(get_button_name(users_db, user_id, "check_quest_button"),
+#                                                       callback_data=check_callback_data)
+#
+#     keyboard = telebot.types.InlineKeyboardMarkup().add(link_button, check_button)
+#
+#     message = get_message_text(users_db, user_id, quest_code)
+#
+#     image_path = 'webp_images/language.webp'
+#
+#     try:
+#         # Open the image file
+#         with open(image_path, 'rb') as image_file:
+#             # Send both text and image in a single message
+#             bot.send_photo(call.message.chat.id, photo=image_file, caption=message,
+#                            reply_markup=keyboard)
+#     except FileNotFoundError:
+#         # Handle the case where the image file is not found
+#         bot.reply_to(call.message, "Error: Image not found.")
+#
+#     twitter_link_clicked(users_db, user_id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('link_'))
